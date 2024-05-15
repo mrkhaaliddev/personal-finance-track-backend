@@ -8,6 +8,7 @@ import {
   totalExpenseAggrigate,
   MonthIncome,
   MonthExpense,
+  Balance,
 } from "../controllers/transactionControllers.js";
 import { protect } from "../middleware/loginMiddleware.js";
 
@@ -21,6 +22,7 @@ router.patch("/update-Transaction/:id", protect, updateTransaction);
 // agrigatin transection
 router.get("/Totalincome-aggrigation", protect, totalIncomeAggrigate);
 router.get("/Totalexpense-aggrigation", protect, totalExpenseAggrigate);
+router.get("/Balance", protect, Balance);
 router.get("/MonthIncome", protect, MonthIncome);
 router.get("/MonthExpense", protect, MonthExpense);
 

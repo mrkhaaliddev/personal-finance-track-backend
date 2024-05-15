@@ -193,6 +193,53 @@ const totalExpenseAggrigate = async (req, res) => {
   }
 };
 
+// Balance
+
+const Balance = async (req, res) => {
+  try {
+    const value = await Transaction.aggregate([
+      [
+        {
+          $match: {
+            user: req.user._id,
+            type: { $in: ["INCOME", "EXPENSE"] },
+          },
+        },
+        {
+          $group: {
+            _id: null,
+            totalIncome: {
+              $sum: {
+                $cond: [{ $eq: ["$type", "INCOME"] }, "$amount", 0],
+              },
+            },
+            totalExpense: {
+              $sum: {
+                $cond: [{ $eq: ["$type", "EXPENSE"] }, "$amount", 0],
+              },
+            },
+          },
+        },
+        {
+          $project: {
+            _id: 0,
+            totalIncome: 1,
+            totalExpense: 1,
+            netAmount: { $subtract: ["$totalIncome", "$totalExpense"] },
+          },
+        },
+      ],
+    ]);
+    console.log(value);
+    res.send({ data: value });
+  } catch (err) {
+    console.log(err);
+    res
+      .status(404)
+      .send({ status: "false", message: "Something went wrong", error: err });
+  }
+};
+
 // this is giving you the current month
 
 const now = new Date(); // Current date
@@ -302,4 +349,5 @@ export {
   totalExpenseAggrigate,
   MonthIncome,
   MonthExpense,
+  Balance,
 };
