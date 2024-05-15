@@ -23,4 +23,5 @@ router.get("/Totalincome-aggrigation", protect, totalIncomeAggrigate);
 router.get("/Totalexpense-aggrigation", protect, totalExpenseAggrigate);
 router.get("/MonthIncome", protect, MonthIncome);
 router.get("/MonthExpense", protect, MonthExpense);
+
 export default router;

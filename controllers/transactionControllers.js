@@ -1,5 +1,6 @@
 import asyncHandler from "express-async-handler";
 import { Transaction } from "../models/transactionModals.js";
+import { legacy_createStore } from "@reduxjs/toolkit";
 
 const createTransaction = asyncHandler(async (req, res) => {
   const { type, transactionDate, name, amount, category, description } =
@@ -41,11 +42,16 @@ const createTransaction = asyncHandler(async (req, res) => {
 });
 
 const getTransaction = async (req, res) => {
-  const transactions = await Transaction.find({ user: req.user._id });
+  const filter = { user: req.user._id };
+  if (req.query.type) {
+    filter.type = req.query.type?.toUpperCase();
+  }
+  const transactions = await Transaction.find(filter);
   console.log(req.user.name);
 
   res.status(200).json({
     status: "true",
+    length: transactions.length,
     data: transactions || "there is no transaction",
   });
 };
@@ -117,6 +123,7 @@ const totalIncomeAggrigate = async (req, res) => {
     const value = await Transaction.aggregate([
       {
         $match: {
+          user: req.user._id,
           type: "INCOME",
         },
       },
@@ -157,6 +164,7 @@ const totalExpenseAggrigate = async (req, res) => {
       [
         {
           $match: {
+            user: req.user._id,
             type: "EXPENSE",
           },
         },
@@ -209,6 +217,7 @@ const MonthIncome = async (req, res) => {
             $gte: new Date(gteDate), // Use the first day of the last month
             $lt: new Date(ltDate), // Use the first day of this month
           },
+          user: req.user._id,
           type: "INCOME",
         },
       },
@@ -250,6 +259,7 @@ const MonthExpense = async (req, res) => {
             $gte: new Date(gteDate), // Use the first day of the last month
             $lt: new Date(ltDate), // Use the first day of this month
           },
+          user: req.user._id,
           type: "EXPENSE",
         },
       },

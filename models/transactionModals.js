@@ -11,6 +11,7 @@ const categorySchema = new mongoose.Schema(
     description: {
       type: String,
       toLowerCase: true,
+      default: "",
     },
     user: {
       type: mongoose.Schema.Types.ObjectId,
@@ -53,6 +54,7 @@ const transactionSchema = new mongoose.Schema(
     description: {
       type: String,
       required: true,
+      default: "",
     },
     user: {
       type: mongoose.Schema.Types.ObjectId,
