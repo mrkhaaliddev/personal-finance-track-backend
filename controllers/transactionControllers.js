@@ -46,6 +46,16 @@ const getTransaction = async (req, res) => {
   if (req.query.type) {
     filter.type = req.query.type?.toUpperCase();
   }
+
+  if (req.query.search) {
+    const searchQuery = req.query.search;
+    filter.$or = [
+      { name: { $regex: searchQuery, $options: "i" } },
+      { description: { $regex: searchQuery, $options: "i" } },
+      { category: { $regex: searchQuery, $options: "i" } },
+      { type: { $regex: searchQuery, $options: "i" } },
+    ];
+  }
   const transactions = await Transaction.find(filter);
   console.log(req.user.name);
 
