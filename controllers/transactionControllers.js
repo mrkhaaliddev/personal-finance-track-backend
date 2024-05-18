@@ -43,6 +43,8 @@ const createTransaction = asyncHandler(async (req, res) => {
 
 const getTransaction = async (req, res) => {
   const filter = { user: req.user._id };
+  const PAGE_SIZE = 10;
+
   if (req.query.type) {
     filter.type = req.query.type?.toUpperCase();
   }
@@ -56,14 +58,22 @@ const getTransaction = async (req, res) => {
       { type: { $regex: searchQuery, $options: "i" } },
     ];
   }
-  const transactions = await Transaction.find(filter).sort({ createdAt: -1 });
-  // const transactions = transactionsDesc.reverse(); you can use this line to reverse the array to at the top the last one also sort
+
+  const { page = 1, per_page = PAGE_SIZE } = req.query;
+  const totalTransactions = await Transaction.countDocuments(filter);
+  const transactions = await Transaction.find(filter, null, {
+    sort: { transactionDate: -1 },
+    skip: (parseInt(page) - 1) * per_page,
+    limit: parseInt(per_page),
+  });
+
   console.log(req.user.name);
 
   res.status(200).json({
     status: "true",
     length: transactions.length,
     data: transactions || "there is no transaction",
+    total: totalTransactions,
   });
 };
 
