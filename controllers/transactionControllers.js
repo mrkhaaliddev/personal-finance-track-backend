@@ -56,9 +56,22 @@ const getTransaction = async (req, res) => {
       { type: { $regex: searchQuery, $options: "i" } },
     ];
   }
-  const transactions = await Transaction.find(filter);
+  const transactions = await Transaction.find(filter).sort({ createdAt: -1 });
+  // const transactions = transactionsDesc.reverse(); you can use this line to reverse the array to at the top the last one also sort
   console.log(req.user.name);
 
+  res.status(200).json({
+    status: "true",
+    length: transactions.length,
+    data: transactions || "there is no transaction",
+  });
+};
+
+const getLastTransactions = async (req, res) => {
+  const filter = { user: req.user._id };
+  const transactions = await Transaction.find(filter)
+    .sort({ _id: -1 })
+    .limit(5);
   res.status(200).json({
     status: "true",
     length: transactions.length,
@@ -127,7 +140,7 @@ const updateTransaction = async (req, res) => {
 
 // agrigation controll
 
-// this is giving you total income
+// this is Reading you total income
 const totalIncomeAggrigate = async (req, res) => {
   try {
     const value = await Transaction.aggregate([
@@ -167,7 +180,7 @@ const totalIncomeAggrigate = async (req, res) => {
   }
 };
 
-// this is giving you total expense
+// this is Reading you total expense
 const totalExpenseAggrigate = async (req, res) => {
   try {
     const value = await Transaction.aggregate([
@@ -250,7 +263,7 @@ const Balance = async (req, res) => {
   }
 };
 
-// this is giving you the current month
+// this is Reading you the current month
 
 const now = new Date(); // Current date
 const firstDayThisMonth = new Date(now.getFullYear(), now.getMonth(), 1); // First day of this month
@@ -264,7 +277,7 @@ const ltDate = new Date(
   lastDayThisMonth.getDate() + 1
 ).toISOString(); // Increment to get the first day of the next month at 00:00:00
 
-// this is giving you This month income
+// this is Reading you This month income
 const MonthIncome = async (req, res) => {
   try {
     const value = await Transaction.aggregate([
@@ -306,7 +319,7 @@ const MonthIncome = async (req, res) => {
   }
 };
 
-// this is giving you This month expense
+// this is Reading you This month expense
 const MonthExpense = async (req, res) => {
   try {
     const value = await Transaction.aggregate([
@@ -350,6 +363,90 @@ const MonthExpense = async (req, res) => {
   }
 };
 
+// this is Reading the 12 month and each month income and expense helping for the graph
+
+const MonthPayments = async (req, res) => {
+  try {
+    const allMonths = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
+
+    // Fetch the aggregated data from MongoDB
+    const value = await Transaction.aggregate([
+      {
+        $group: {
+          _id: {
+            month: { $month: "$transactionDate" },
+            year: { $year: "$transactionDate" },
+          },
+          totalIncome: {
+            $sum: {
+              $cond: [{ $eq: ["$type", "INCOME"] }, "$amount", 0],
+            },
+          },
+          totalExpense: {
+            $sum: {
+              $cond: [{ $eq: ["$type", "EXPENSE"] }, "$amount", 0],
+            },
+          },
+        },
+      },
+      {
+        $addFields: {
+          monthName: {
+            $arrayElemAt: [allMonths, { $subtract: ["$_id.month", 1] }],
+          },
+        },
+      },
+      {
+        $sort: { "_id.year": 1, "_id.month": 1 },
+      },
+    ]);
+
+    // Create a map of the aggregated results
+    const resultMap = value.reduce(
+      (acc, { monthName, totalIncome, totalExpense }) => {
+        acc[monthName] = { totalIncome, totalExpense };
+        return acc;
+      },
+      {}
+    );
+
+    // Ensure all months are included
+    const finalResults = allMonths.map((month) => ({
+      month,
+      totalIncome: resultMap[month] ? resultMap[month].totalIncome : 0,
+      totalExpense: resultMap[month] ? resultMap[month].totalExpense : 0,
+    }));
+
+    // Send the response
+    res.status(200).send({
+      status: "true",
+      user: req.user._id,
+      message: "Here is the data fetched from the database, use it bro please",
+      data: finalResults,
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).send({
+      status: "false",
+      message: "Something went wrong",
+      error: err,
+    });
+  }
+};
+
 export {
   createTransaction,
   getTransaction,
@@ -360,4 +457,6 @@ export {
   MonthIncome,
   MonthExpense,
   Balance,
+  MonthPayments,
+  getLastTransactions,
 };
