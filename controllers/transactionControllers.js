@@ -80,8 +80,8 @@ const getTransaction = async (req, res) => {
 const getLastTransactions = async (req, res) => {
   const filter = { user: req.user._id };
   const transactions = await Transaction.find(filter)
-    .sort({ _id: -1 })
-    .limit(5);
+    .sort({ createdAt: -1 })
+    .limit(6);
   res.status(200).json({
     status: "true",
     length: transactions.length,

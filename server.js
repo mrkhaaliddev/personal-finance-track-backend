@@ -4,6 +4,7 @@ import connectDB from "./config/db.js";
 import userRoutes from "./routes/userRoutes.js";
 import transactionRouter from "./routes/transactionRouter.js";
 import categoryRouter from "./routes/categoryRouter.js";
+import budgetRouters from "./routes/budgetRouters.js";
 import { errorHandler, notfound } from "./middleware/errorMiddleware.js";
 import chalk from "chalk";
 import cors from "cors";
@@ -25,6 +26,7 @@ connectDB();
 app.use("/api/transactions", transactionRouter);
 app.use("/api/categories", categoryRouter);
 app.use("/api/users", userRoutes);
+app.use("/api/budget", budgetRouters);
 app.use(cors());
 
 app.get("/", (req, res) => {

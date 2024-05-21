@@ -43,7 +43,9 @@ const create_Categories = asyncHandler(async (req, res) => {
 
 // get all categories
 const get_Categories = asyncHandler(async (req, res) => {
-  const categories = await Category.find({ user: req.user._id });
+  const categories = await Category.find({ user: req.user._id }, null, {
+    sort: { createdAt: -1 },
+  });
   console.log("categories", categories);
   console.log(req.user.name);
 
