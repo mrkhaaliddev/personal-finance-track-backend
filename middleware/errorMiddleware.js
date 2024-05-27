@@ -35,4 +35,4 @@ const MiddleWare = (req, res, next) => {
   next();
 };
 
-export { notfound, errorHandler };
+export { notfound, errorHandler, MiddleWare };

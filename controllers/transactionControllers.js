@@ -378,7 +378,7 @@ const MonthExpense = async (req, res) => {
 const MonthPayments = async (req, res) => {
   try {
     const allMonths = [
-      "Jan",
+      "January",
       "Feb",
       "Mar",
       "Apr",
@@ -394,6 +394,11 @@ const MonthPayments = async (req, res) => {
 
     // Fetch the aggregated data from MongoDB
     const value = await Transaction.aggregate([
+      {
+        $match: {
+          user: req.user._id,
+        },
+      },
       {
         $group: {
           _id: {
