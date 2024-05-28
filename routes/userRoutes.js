@@ -1,5 +1,6 @@
 import express from "express";
-import multer from "multer";
+import fs from "fs";
+import multer, { diskStorage } from "multer";
 
 const router = express.Router();
 import {
@@ -10,19 +11,19 @@ import {
   // resetPassword,
   getUserProfile,
   updateUserProfile,
+  updateUserImage,
 } from "../controllers/userControllers.js";
 import userValidator from "../validators/userValidator.js";
 import { protect } from "../middleware/loginMiddleware.js";
 
-const storage = multer.diskStorage({
+const storage = diskStorage({
   destination: function (req, file, cb) {
-    cb(null, "backend/uploads");
+    const uploadFile = "backend/uploads";
+    fs.mkdirSync(uploadFile, { recursive: true });
+    cb(null, uploadFile);
   },
-
   filename: function (req, file, cb) {
-    const [filename, extension] = file.originalname.split(".");
-    // console.log(file);
-    cb(null, filename + "-" + Date.now() + "." + extension);
+    cb(null, file.originalname);
   },
 });
 
@@ -38,6 +39,12 @@ router.post(
   updateUserProfile
 );
 router.get("/Get-Profile", protect, getUserProfile);
+router.put(
+  "/update-image",
+  upload.single("imageUrl"),
+  protect,
+  updateUserImage
+);
 // router.post("/forget-Password", forgetPassword);
 // router.get("/forget-Password/:id/:token", resetPassword);
 

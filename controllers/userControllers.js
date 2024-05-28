@@ -75,6 +75,8 @@ const logoutUser = (req, res) => {
 const updateUserProfile = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user._id);
 
+  console.log("req.body", req.body);
+
   if (!user) {
     res.status(404).json({ message: "User not found" });
     return;
@@ -85,13 +87,8 @@ const updateUserProfile = asyncHandler(async (req, res) => {
   user.imageUrl = req.body.imageUrl || user.imageUrl;
 
   if (req.file) {
-    // user.imageUrl = `${req.protocol}://${req.get(
-    //   "host"
-    // )}/${req.file.path.replace(/\\/g, "/")}`;
     console.log(req.file);
-
     user.imageUrl = req.file?.filename || "";
-    // req.files["thumbnail"][0]?.filename;
   }
 
   if (req.body.oldPassword && req.body.newPassword) {
@@ -123,57 +120,39 @@ const getUserProfile = asyncHandler(async (req, res) => {
     _id: req.user._id,
     name: req.user.name,
     email: req.user.email,
+    imageUrl: req.user.imageUrl,
   };
   res.status(200).send({ user });
 });
 
-// this is forgot password controller
-// const forgetPassword = asyncHandler(async (req, res) => {
-//   const { email } = req.body;
-//   const oldUser = await User.findOne({ email });
+const updateUserImage = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user._id);
 
-//   if (!oldUser) {
-//     res.status(404).json({
-//       status: false,
-//       message: "oldUser does not exist",
-//     });
-//   }
+  if (!user) {
+    return res.status(404).json({ message: "User not found" });
+  }
 
-//   const secret = process.env.JWT_SECRET + oldUser.password;
-//   const token = jwt.sign({ email: oldUser.email, id: oldUser._id }, secret, {
-//     expiresIn: "5m",
-//   });
+  if (!req.file) {
+    return res.status(400).send({
+      message: "File not found",
+    });
+  }
+  user.imageUrl = req.file?.filename || "";
 
-//   const link = `http://localhost:5000/api/users/forget-Password/${oldUser._id}/${token}`;
-//   console.log(link);
-//   res.status(200).json({
-//     status: true,
-//     message: "password reset link sent to your email",
-//     link: link,
-//   });
-// });
+  const result = await user.save();
 
-// const resetPassword = asyncHandler(async (req, res) => {
-//   const { id, token } = req.params;
-//   console.log(req.params);
-//   const oldUser = await User.findById({ _id: id });
-//   if (!oldUser) {
-//     return res.status(404).send({ message: "User Not Found" });
-//   }
+  res.status(200).json({
+    status: "true",
+    message: "User updated successfully",
+    data: result,
+  });
+});
 
-//   const secret = process.env.JWT_SECRET + oldUser.password;
-//   const payload = jwt.verify(token, secret);
-
-//   if (payload) {
-//     res.send("verified");
-//   } else {
-//     res.send("not verified");
-//   }
-// });
 export {
   registerUser,
   loginUser,
   logoutUser,
   updateUserProfile,
   getUserProfile,
+  updateUserImage,
 };

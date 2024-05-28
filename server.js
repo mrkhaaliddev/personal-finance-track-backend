@@ -17,7 +17,6 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// this middle ware will make sure you can upload images in express.
 app.use("/uploads", express.static("backend/uploads"));
 
 const PORT = process.env.PORT;
